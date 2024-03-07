@@ -31,6 +31,10 @@ var labelProbabilities = [];
 var chordCountsInLabels = {};
 var probabilityOfChordsInLabels = {};
 
+var easy = 'easy';
+var medium = 'medium';
+var hard = 'hard';
+
 /**
  * @description 用來訓練模型，將一首歌的和弦及難度標籤添加到資料中，同時更新所有和弦(allChords)的列表、所有難度標籤的列表以及難度標籤弦的計數
  * @param {Array} chords 歌曲和弦
@@ -52,20 +56,11 @@ function train(chords, label) {
 }
 
 /**
- * @description 返回已經訓練的歌曲數量
- * @return { Number } 已訓練歌曲數量
- */
-function getNumberOfSongs() {
-  return songs.length;
-}
-
-/**
  * @description 計算每個難度標籤出現的機率
  */
 function setLabelProbabilities() {
   Object.keys(labelCounts).forEach(function (label) {
-    var numberOfSongs = getNumberOfSongs();
-    labelProbabilities[label] = labelCounts[label] / numberOfSongs;
+    labelProbabilities[label] = labelCounts[label] / songs.length;
   });
 }
 
@@ -79,8 +74,7 @@ function setChordCountsInLabels() {
     }
     song[1].forEach(function (chord) {
       if (chordCountsInLabels[song[0]][chord] > 0) {
-        chordCountsInLabels[song[0]][chord] =
-          chordCountsInLabels[song[0]][chord] + 1;
+        chordCountsInLabels[song[0]][chord] += 1;
       } else {
         chordCountsInLabels[song[0]][chord] = 1;
       }
@@ -97,21 +91,20 @@ function setProbabilityOfChordsInLabels() {
     Object.keys(probabilityOfChordsInLabels[difficulty]).forEach(function (
       chord
     ) {
-      probabilityOfChordsInLabels[difficulty][chord] =
-        (probabilityOfChordsInLabels[difficulty][chord] * 1.0) / songs.length;
+      probabilityOfChordsInLabels[difficulty][chord] /= songs.length;
     });
   });
 }
 
-train(imagine, 'easy');
-train(somewhereOverTheRainbow, 'easy');
-train(tooManyCooks, 'easy');
-train(iWillFollowYouIntoTheDark, 'medium');
-train(babyOneMoreTime, 'medium');
-train(creep, 'medium');
-train(paperBag, 'hard');
-train(toxic, 'hard');
-train(bulletproof, 'hard');
+train(imagine, easy);
+train(somewhereOverTheRainbow, easy);
+train(tooManyCooks, easy);
+train(iWillFollowYouIntoTheDark, medium);
+train(babyOneMoreTime, medium);
+train(creep, medium);
+train(paperBag, hard);
+train(toxic, hard);
+train(bulletproof, hard);
 
 setLabelProbabilities();
 setChordCountsInLabels();
@@ -121,15 +114,16 @@ setProbabilityOfChordsInLabels();
  * @description 對一組和弦進行分類，判斷屬於哪個難度等級
  */
 function classify(chords) {
+  var smoothing = 1.01;
   console.log('total:', labelProbabilities);
   var classified = {};
   Object.keys(labelProbabilities).forEach(function (difficulty) {
-    var first = labelProbabilities[difficulty] + 1.01;
+    var first = labelProbabilities[difficulty] + smoothing;
     chords.forEach(function (chord) {
       var probabilityOfChordInLabel =
         probabilityOfChordsInLabels[difficulty][chord];
       if (probabilityOfChordInLabel) {
-        first = first * (probabilityOfChordInLabel + 1.01);
+        first = first * (probabilityOfChordInLabel + smoothing);
       }
     });
     classified[difficulty] = first;
