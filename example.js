@@ -26,6 +26,7 @@ paperBag = [
 toxic = ['cm', 'eb', 'g', 'cdim', 'eb7', 'd7', 'db7', 'ab', 'gmaj7', 'g7'];
 bulletproof = ['d#m', 'g#', 'b', 'f#', 'g#m', 'c#'];
 song_11 = [];
+
 var songs = [];
 var labels = [];
 var allChords = [];
@@ -34,6 +35,11 @@ var labelProbabilities = [];
 var chordCountsInLabels = {};
 var probabilityOfChordsInLabels = {};
 
+/**
+ * @description 用來訓練模型，將一首歌的和弦及難度標籤添加到資料中，同時更新所有和弦(allChords)的列表、所有難度標籤的列表以及難度標籤弦的計數
+ * @param {Array} chords 歌曲和弦
+ * @param {string} label 難度標籤 : easy、medium、hard
+ */
 function train(chords, label) {
   songs.push([label, chords]);
   labels.push(label);
@@ -49,10 +55,17 @@ function train(chords, label) {
   }
 }
 
+/**
+ * @description 返回已經訓練的歌曲數量
+ * @return { Number } 已訓練歌曲數量
+ */
 function getNumberOfSongs() {
   return songs.length;
 }
 
+/**
+ * @description 計算每個難度標籤出現的機率
+ */
 function setLabelProbabilities() {
   Object.keys(labelCounts).forEach(function (label) {
     var numberOfSongs = getNumberOfSongs();
@@ -60,6 +73,9 @@ function setLabelProbabilities() {
   });
 }
 
+/**
+ * @description 計算每個標籤中每個和弦出現的次數，例如c和弦在easy中出現3次
+ */
 function setChordCountsInLabels() {
   songs.forEach(function (i) {
     if (chordCountsInLabels[i[0]] === undefined) {
@@ -75,6 +91,9 @@ function setChordCountsInLabels() {
   });
 }
 
+/**
+ * @description 設置每個難度標籤中每個和弦出現的機率
+ */
 function setProbabilityOfChordsInLabels() {
   probabilityOfChordsInLabels = chordCountsInLabels;
   Object.keys(probabilityOfChordsInLabels).forEach(function (i) {
@@ -99,6 +118,9 @@ setLabelProbabilities();
 setChordCountsInLabels();
 setProbabilityOfChordsInLabels();
 
+/**
+ * @description 對一組和弦進行分類，判斷屬於哪個難度等級
+ */
 function classify(chords) {
   var ttal = labelProbabilities;
   console.log(ttal);
